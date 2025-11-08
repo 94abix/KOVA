@@ -31,6 +31,12 @@ export default function SessionDetailPage() {
 
   async function loadSession(id: string) {
     try {
+      if (!supabase) {
+        console.error("Supabase non configuré");
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("sessions")
         .select("*")

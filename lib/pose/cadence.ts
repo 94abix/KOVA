@@ -8,9 +8,9 @@ import { computeAngularVelocity } from "./velocity";
 export function computeCadence(
   angles: number[],
   times: number[]
-): { cadence: number; trend: number } {
+): { value: number; trend: number } {
   if (angles.length < 3 || times.length !== angles.length) {
-    return { cadence: 0, trend: 0 };
+    return { value: 0, trend: 0 };
   }
 
   const velocities = computeAngularVelocity(angles, times);
@@ -46,6 +46,6 @@ export function computeCadence(
       ? ((lastThirdAvg - firstThirdAvg) / firstThirdAvg) * 100
       : 0;
 
-  return { cadence, trend };
+  return { value: cadence, trend };
 }
 

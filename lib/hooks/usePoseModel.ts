@@ -32,7 +32,7 @@ const KEYPOINT_NAMES: PoseKeypointName[] = [
 function mapMoveNetToKeypoints(detection: any): Record<PoseKeypointName, Keypoint> {
   const keypoints: Partial<Record<PoseKeypointName, Keypoint>> = {};
   
-  detection.keypoints.forEach((kp) => {
+  detection.keypoints.forEach((kp: { name?: string; x: number; y: number; score?: number }) => {
     const name = kp.name as string;
     let mappedName: PoseKeypointName | null = null;
     
@@ -73,7 +73,7 @@ function mapMoveNetToKeypoints(detection: any): Record<PoseKeypointName, Keypoin
 }
 
 export function usePoseModel() {
-  const [model, setModel] = useState<poseDetection.PoseDetector | null>(null);
+  const [model, setModel] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

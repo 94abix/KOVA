@@ -20,6 +20,12 @@ export default function SessionsPage() {
 
   async function loadSessions() {
     try {
+      if (!supabase) {
+        console.error("Supabase non configuré");
+        setLoading(false);
+        return;
+      }
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
