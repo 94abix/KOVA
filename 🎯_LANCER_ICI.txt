@@ -1,0 +1,39 @@
+═══════════════════════════════════════════════════════════
+   🚀 INSTRUCTIONS POUR LANCER KOVA
+═══════════════════════════════════════════════════════════
+
+📋 ÉTAPES SIMPLES :
+
+1. Ouvrez Terminal.app (ou iTerm) sur votre Mac
+
+2. Copiez-collez ces commandes une par une :
+
+   cd ~/Desktop/kova
+   
+   npm install
+   
+   npm run dev
+
+3. Ouvrez votre navigateur sur :
+   
+   http://localhost:3000
+
+4. Cliquez sur "🎬 Voir la démonstration" pour tester !
+
+═══════════════════════════════════════════════════════════
+
+❓ Si npm n'est pas trouvé :
+
+   brew install node
+
+   Puis réessayez : npm install
+
+═══════════════════════════════════════════════════════════
+
+✅ Une fois lancé, vous verrez :
+   - Page d'accueil avec 2 boutons
+   - Mode démo (/demo) avec squelette animé
+   - Graphiques et alertes fonctionnels
+
+═══════════════════════════════════════════════════════════
+

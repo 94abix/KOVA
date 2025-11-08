@@ -1,0 +1,60 @@
+═══════════════════════════════════════════════════════════
+   ✅ SOLUTION : Erreurs npm install et next non trouvé
+═══════════════════════════════════════════════════════════
+
+PROBLÈMES IDENTIFIÉS :
+  1. npm install a échoué (erreur tag "#")
+  2. next: command not found (dépendances non installées)
+
+CAUSE :
+  Vous avez probablement copié-colle la commande avec le
+  commentaire "# 1-2 minutes la première fois" qui a causé
+  une erreur npm.
+
+═══════════════════════════════════════════════════════════
+
+SOLUTION : Copiez-collez ces commandes UNE PAR UNE
+═══════════════════════════════════════════════════════════
+
+1. Nettoyer les installations précédentes :
+
+   cd ~/Desktop/kova
+   rm -rf node_modules package-lock.json .next
+
+2. Installer les dépendances (SANS commentaire) :
+
+   npm install
+
+   ⚠️  Ne copiez PAS le commentaire "# 1-2 minutes..." !
+   ⚠️  Copiez SEULEMENT : npm install
+
+3. Vérifier que ça fonctionne :
+
+   ls node_modules/.bin/next
+
+   ✅ Si ça affiche quelque chose, c'est bon !
+
+4. Lancer le serveur :
+
+   npm run dev
+
+   ⚠️  Encore une fois, PAS de commentaire après !
+
+═══════════════════════════════════════════════════════════
+
+OU UTILISEZ LE SCRIPT AUTOMATIQUE :
+
+   cd ~/Desktop/kova
+   ./CORRIGER_PROBLEMES.sh
+
+═══════════════════════════════════════════════════════════
+
+COMMANDES EXACTES (sans commentaires) :
+
+   cd ~/Desktop/kova
+   rm -rf node_modules package-lock.json
+   npm install
+   npm run dev
+
+═══════════════════════════════════════════════════════════
+

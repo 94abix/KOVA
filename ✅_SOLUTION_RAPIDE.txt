@@ -1,0 +1,57 @@
+═══════════════════════════════════════════════════════════
+   ✅ SOLUTION : Homebrew n'est pas dans le PATH
+═══════════════════════════════════════════════════════════
+
+PROBLÈME :
+  Homebrew est installé mais pas accessible car il n'est
+  pas dans votre PATH.
+
+SOLUTION : Copiez-collez ces commandes une par une
+═══════════════════════════════════════════════════════════
+
+1. Ajouter Homebrew au PATH (session actuelle) :
+
+   eval "$(/opt/homebrew/bin/brew shellenv)"
+
+2. Vérifier que ça fonctionne :
+
+   brew --version
+
+3. Installer Node.js :
+
+   brew install node
+
+4. Vérifier l'installation :
+
+   node --version
+   npm --version
+
+5. Lancer KOVA :
+
+   cd ~/Desktop/kova
+   npm install
+   npm run dev
+
+═══════════════════════════════════════════════════════════
+
+POUR LA SESSION PERMANENTE (optionnel mais recommandé) :
+
+   Copiez-collez ces 2 commandes pour que Homebrew
+   soit disponible à chaque ouverture de Terminal :
+
+   echo >> ~/.zprofile
+   echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+
+   Puis fermez et rouvrez Terminal, ou tapez :
+
+   source ~/.zprofile
+
+═══════════════════════════════════════════════════════════
+
+OU UTILISEZ LE SCRIPT AUTOMATIQUE :
+
+   cd ~/Desktop/kova
+   ./CONFIGURER_HOMEBREW.sh
+
+═══════════════════════════════════════════════════════════
+
