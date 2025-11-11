@@ -5,6 +5,8 @@ import type { PoseFrame, Keypoint, PoseKeypointName } from "@/lib/pose/types";
 
 // Import dynamique pour éviter les problèmes SSR
 let poseDetection: any = null;
+let tfjs: any = null;
+let backendInitialized = false;
 
 const KEYPOINT_NAMES: PoseKeypointName[] = [
   "nose",
@@ -85,6 +87,29 @@ export function usePoseModel() {
         // Charger dynamiquement le module (côté client uniquement)
         if (typeof window === "undefined") {
           throw new Error("usePoseModel doit être utilisé côté client");
+        }
+
+        // Initialiser le backend TensorFlow.js
+        if (!backendInitialized) {
+          if (!tfjs) {
+            tfjs = await import("@tensorflow/tfjs");
+          }
+          
+          // Importer et initialiser le backend WebGL
+          try {
+            const webgl = await import("@tensorflow/tfjs-backend-webgl");
+            await tfjs.setBackend("webgl");
+            await tfjs.ready();
+            backendInitialized = true;
+            console.log("✅ Backend WebGL initialisé");
+          } catch (webglError) {
+            console.warn("WebGL non disponible, utilisation du backend CPU");
+            // Fallback sur CPU si WebGL n'est pas disponible
+            await tfjs.setBackend("cpu");
+            await tfjs.ready();
+            backendInitialized = true;
+            console.log("✅ Backend CPU initialisé");
+          }
         }
 
         if (!poseDetection) {
