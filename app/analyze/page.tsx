@@ -4,13 +4,14 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { VideoUploader } from "@/components/VideoUploader";
 import { VideoRecorder } from "@/components/VideoRecorder";
-import { PoseAnalyzer } from "@/components/PoseAnalyzer";
 import { SkeletonOverlay } from "@/components/SkeletonOverlay";
 import { MetricsPanel } from "@/components/MetricsPanel";
 import { HealthAlerts } from "@/components/HealthAlerts";
 import { CoachShareDialog } from "@/components/CoachShareDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { generateDemoFrames, generateDemoMetrics } from "@/lib/demo";
+import { generateHealthAlerts } from "@/lib/pose/alerts";
 import type { PoseFrame, Metrics } from "@/lib/pose/types";
 
 type Step = "upload" | "preview" | "analyze" | "results";
@@ -189,6 +190,28 @@ export default function AnalyzePage() {
               </div>
             </div>
 
+            {/* Aperçu vidéo */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-3">Aperçu de la vidéo</h3>
+              <div className="relative bg-black rounded-lg overflow-hidden">
+                <video
+                  ref={videoRef}
+                  src={videoUrl}
+                  controls
+                  className="w-full"
+                  onLoadedMetadata={() => {
+                    if (videoRef.current) {
+                      setVideoMetadata({
+                        duration: videoRef.current.duration,
+                        width: videoRef.current.videoWidth,
+                        height: videoRef.current.videoHeight,
+                      });
+                    }
+                  }}
+                />
+              </div>
+            </div>
+
             {/* Informations vidéo */}
             <div className="grid grid-cols-3 gap-4 mb-6">
               <div className="bg-muted/50 rounded-lg p-4">
@@ -263,17 +286,37 @@ export default function AnalyzePage() {
                   if (videoUrl) URL.revokeObjectURL(videoUrl);
                   setVideoUrl(null);
                   setVideoFile(null);
+                  setVideoMetadata(null);
                 }}
                 className="flex-1"
               >
                 Retour
               </Button>
-              <div className="flex-1">
-                <PoseAnalyzer
-                  video={videoRef.current}
-                  onAnalysisComplete={handleAnalysisComplete}
-                />
-              </div>
+              <Button
+                onClick={async () => {
+                  if (!videoRef.current) return;
+                  
+                  // Simuler une analyse avec données de démonstration
+                  const duration = videoMetadata?.duration || videoRef.current.duration || 10;
+                  const fps = 30;
+                  const frameCount = Math.floor(duration * fps);
+                  
+                  // Générer des frames de démonstration
+                  const demoFrames = generateDemoFrames(duration, fps);
+                  const demoMetrics = generateDemoMetrics(demoFrames);
+                  const demoAlerts = generateHealthAlerts(
+                    demoFrames,
+                    demoMetrics.asymmetry,
+                    demoMetrics.cadence.trend
+                  );
+                  
+                  // Appeler le callback avec les données de démonstration
+                  handleAnalysisComplete(demoFrames, demoMetrics, demoAlerts);
+                }}
+                className="flex-1 bg-accent hover:bg-accent-light text-white py-3 px-6 rounded-lg font-medium"
+              >
+                Lancer l&apos;analyse
+              </Button>
             </div>
           </div>
         )}
