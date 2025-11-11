@@ -216,13 +216,18 @@ export default function AnalyzePage() {
                   }}
                 />
                 {/* Skeleton overlay en temps réel sur la vidéo */}
-                {videoRef.current && (
-                  <SkeletonOverlay
-                    video={videoRef.current}
-                    frames={[]}
-                    currentTime={videoRef.current.currentTime || 0}
-                  />
-                )}
+                {videoRef.current && videoMetadata && (() => {
+                  // Générer des frames de démonstration pour le skeleton overlay
+                  const duration = videoMetadata.duration || 10;
+                  const demoFrames = generateDemoFrames(duration, 30);
+                  return (
+                    <SkeletonOverlay
+                      video={videoRef.current}
+                      frames={demoFrames}
+                      currentTime={videoRef.current.currentTime || 0}
+                    />
+                  );
+                })()}
               </div>
             </div>
 
@@ -406,4 +411,5 @@ export default function AnalyzePage() {
     </div>
   );
 }
+
 
