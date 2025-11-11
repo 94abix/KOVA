@@ -185,12 +185,13 @@ export default function AnalyzePage() {
           <div className="max-w-4xl mx-auto space-y-6">
             <div>
               <h2 className="text-2xl font-bold mb-4">Aperçu</h2>
-              <div className="relative bg-black rounded-lg overflow-hidden aspect-video max-w-2xl">
+              <div className="relative bg-black rounded-lg overflow-hidden max-w-2xl" style={{ minHeight: '400px' }}>
                 <video
                   ref={videoRef}
                   src={videoUrl}
                   controls
-                  className="w-full h-full object-contain"
+                  preload="metadata"
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', minHeight: '400px' }}
                   onLoadedMetadata={() => {
                     if (videoRef.current) {
                       setVideoMetadata({
@@ -199,6 +200,9 @@ export default function AnalyzePage() {
                         height: videoRef.current.videoHeight,
                       });
                     }
+                  }}
+                  onError={(e) => {
+                    console.error("Erreur de chargement vidéo:", e);
                   }}
                 />
               </div>
@@ -250,12 +254,13 @@ export default function AnalyzePage() {
             <div className="lg:col-span-2 space-y-6">
               <Card>
                 <CardContent className="p-6">
-                  <div className="relative bg-black rounded-lg overflow-hidden">
+                  <div className="relative bg-black rounded-lg overflow-hidden" style={{ minHeight: '400px' }}>
                     <video
                       ref={videoRef}
                       src={videoUrl}
                       controls
-                      className="w-full"
+                      preload="metadata"
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', minHeight: '400px' }}
                       onTimeUpdate={(e) => {
                         // Le SkeletonOverlay écoute le currentTime
                       }}
