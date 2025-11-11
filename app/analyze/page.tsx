@@ -43,11 +43,18 @@ export default function AnalyzePage() {
 
   useEffect(() => {
     return () => {
-      if (videoUrl) {
+      if (videoUrl && videoUrl.startsWith('blob:')) {
         URL.revokeObjectURL(videoUrl);
       }
     };
   }, [videoUrl]);
+
+  // Forcer le chargement de la vidéo quand elle est disponible
+  useEffect(() => {
+    if (videoRef.current && videoUrl && step === "preview") {
+      videoRef.current.load();
+    }
+  }, [videoUrl, step]);
 
   const handleVideoSelect = (file: File) => {
     setVideoFile(file);
@@ -185,26 +192,45 @@ export default function AnalyzePage() {
           <div className="max-w-4xl mx-auto space-y-6">
             <div>
               <h2 className="text-2xl font-bold mb-4">Aperçu</h2>
-              <div className="relative bg-black rounded-lg overflow-hidden max-w-2xl" style={{ minHeight: '400px' }}>
-                <video
-                  ref={videoRef}
-                  src={videoUrl}
-                  controls
-                  preload="metadata"
-                  style={{ width: '100%', height: '100%', objectFit: 'contain', minHeight: '400px' }}
-                  onLoadedMetadata={() => {
-                    if (videoRef.current) {
-                      setVideoMetadata({
-                        duration: videoRef.current.duration,
-                        width: videoRef.current.videoWidth,
-                        height: videoRef.current.videoHeight,
-                      });
-                    }
-                  }}
-                  onError={(e) => {
-                    console.error("Erreur de chargement vidéo:", e);
-                  }}
-                />
+              <div className="relative bg-black rounded-lg overflow-hidden max-w-2xl" style={{ minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {videoUrl ? (
+                  <video
+                    ref={videoRef}
+                    src={videoUrl}
+                    controls
+                    preload="auto"
+                    playsInline
+                    style={{ 
+                      width: '100%', 
+                      maxWidth: '100%', 
+                      height: 'auto',
+                      maxHeight: '600px',
+                      objectFit: 'contain',
+                      display: 'block'
+                    }}
+                    onLoadedMetadata={() => {
+                      if (videoRef.current) {
+                        setVideoMetadata({
+                          duration: videoRef.current.duration,
+                          width: videoRef.current.videoWidth,
+                          height: videoRef.current.videoHeight,
+                        });
+                      }
+                    }}
+                    onCanPlay={() => {
+                      if (videoRef.current) {
+                        videoRef.current.play().catch(() => {
+                          // Ignore autoplay errors
+                        });
+                      }
+                    }}
+                    onError={(e) => {
+                      console.error("Erreur de chargement vidéo:", e);
+                    }}
+                  />
+                ) : (
+                  <div className="text-white p-8">Chargement de la vidéo...</div>
+                )}
               </div>
             </div>
 
@@ -254,22 +280,36 @@ export default function AnalyzePage() {
             <div className="lg:col-span-2 space-y-6">
               <Card>
                 <CardContent className="p-6">
-                  <div className="relative bg-black rounded-lg overflow-hidden" style={{ minHeight: '400px' }}>
-                    <video
-                      ref={videoRef}
-                      src={videoUrl}
-                      controls
-                      preload="metadata"
-                      style={{ width: '100%', height: '100%', objectFit: 'contain', minHeight: '400px' }}
-                      onTimeUpdate={(e) => {
-                        // Le SkeletonOverlay écoute le currentTime
-                      }}
-                    />
-                    <SkeletonOverlay
-                      video={videoRef.current}
-                      frames={frames}
-                      currentTime={videoRef.current?.currentTime || 0}
-                    />
+                  <div className="relative bg-black rounded-lg overflow-hidden" style={{ minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {videoUrl ? (
+                      <>
+                        <video
+                          ref={videoRef}
+                          src={videoUrl}
+                          controls
+                          preload="auto"
+                          playsInline
+                          style={{ 
+                            width: '100%', 
+                            maxWidth: '100%', 
+                            height: 'auto',
+                            maxHeight: '600px',
+                            objectFit: 'contain',
+                            display: 'block'
+                          }}
+                          onTimeUpdate={(e) => {
+                            // Le SkeletonOverlay écoute le currentTime
+                          }}
+                        />
+                        <SkeletonOverlay
+                          video={videoRef.current}
+                          frames={frames}
+                          currentTime={videoRef.current?.currentTime || 0}
+                        />
+                      </>
+                    ) : (
+                      <div className="text-white p-8">Vidéo non disponible</div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
