@@ -4,11 +4,11 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { MetricsPanel } from "@/components/MetricsPanel";
 import { HealthAlerts } from "@/components/HealthAlerts";
-import { CoachShareDialog } from "@/components/CoachShareDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { generateDemoFrames, generateDemoMetrics } from "@/lib/demo";
 import { generateHealthAlerts } from "@/lib/pose/alerts";
+import { generateCoachPDF } from "@/lib/pdf/CoachReportPDF";
 import type { PoseFrame, Metrics } from "@/lib/pose/types";
 
 export default function DemoPage() {
@@ -26,8 +26,6 @@ export default function DemoPage() {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [coachToken, setCoachToken] = useState<string | null>(null);
-  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   useEffect(() => {
     const checkVideo = async () => {
@@ -127,12 +125,16 @@ export default function DemoPage() {
 
   const handleGenerateCoachLink = async () => {
     try {
-      // Générer un token pour la démonstration
-      const token = `demo-token-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-      setCoachToken(token);
+      // Générer et télécharger le PDF du rapport
+      if (metrics && frames.length > 0) {
+        const duration = frames.length > 0 ? frames[frames.length - 1].t : 10;
+        await generateCoachPDF(metrics, alerts, duration, frames.length);
+      } else {
+        alert("Les métriques ne sont pas encore chargées");
+      }
     } catch (err) {
-      console.error("Erreur lors de la génération du lien:", err);
-      alert("Erreur lors de la génération du lien");
+      console.error("Erreur lors de la génération du PDF:", err);
+      alert("Erreur lors de la génération du PDF");
     }
   };
 
@@ -300,10 +302,10 @@ export default function DemoPage() {
 
                 {/* Bouton Exporter vers coach */}
                 <Button
-                  onClick={() => setShareDialogOpen(true)}
+                  onClick={handleGenerateCoachLink}
                   className="w-full bg-accent hover:bg-accent-light text-white py-3 px-6 rounded-lg font-medium text-base"
                 >
-                  Exporter vers coach
+                  Exporter vers coach (PDF)
                 </Button>
               </CardContent>
             </Card>
@@ -311,12 +313,6 @@ export default function DemoPage() {
         </div>
       </main>
 
-      <CoachShareDialog
-        open={shareDialogOpen}
-        onOpenChange={setShareDialogOpen}
-        token={coachToken}
-        onGenerateLink={handleGenerateCoachLink}
-      />
     </div>
   );
 }
