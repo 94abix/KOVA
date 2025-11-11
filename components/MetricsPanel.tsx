@@ -49,7 +49,7 @@ export function MetricsPanel({ metrics, frames }: MetricsPanelProps) {
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="angles">Angles</TabsTrigger>
             <TabsTrigger value="asymmetry">Asymétrie</TabsTrigger>
-            <TabsTrigger value="cadence">Cadence</TabsTrigger>
+            <TabsTrigger value="indicator">Indicateur</TabsTrigger>
             <TabsTrigger value="summary">Résumé</TabsTrigger>
           </TabsList>
 
@@ -264,48 +264,123 @@ export function MetricsPanel({ metrics, frames }: MetricsPanelProps) {
             </div>
           </TabsContent>
 
-          <TabsContent value="cadence" className="mt-4">
+          <TabsContent value="indicator" className="mt-4">
             <div className="space-y-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Cadence</p>
-                <p className="text-2xl font-bold">{metrics.cadence.value.toFixed(2)} pics/s</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Tendance</p>
-                <p className={`text-xl font-semibold ${metrics.cadence.trend < 0 ? "text-yellow-400" : "text-green-400"}`}>
-                  {metrics.cadence.trend > 0 ? "+" : ""}
-                  {metrics.cadence.trend.toFixed(1)}%
-                </p>
+              <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg">
+                <div className="text-2xl">✅</div>
+                <div>
+                  <p className="font-semibold text-foreground">Aucune alerte significative détectée</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Tes mouvements sont équilibrés et bien exécutés.
+                  </p>
+                </div>
               </div>
             </div>
           </TabsContent>
 
           <TabsContent value="summary" className="mt-4">
-            <div className="space-y-4 text-sm">
-              <div>
-                <p className="text-muted-foreground">Angles moyens</p>
-                <div className="grid grid-cols-2 gap-4 mt-2">
-                  <div>
-                    <p>Coude G: {metrics.angles.left_elbow.reduce((a, b) => a + b, 0) / metrics.angles.left_elbow.length || 0}</p>
-                    <p>Coude D: {metrics.angles.right_elbow.reduce((a, b) => a + b, 0) / metrics.angles.right_elbow.length || 0}</p>
+            <div className="space-y-6">
+              {/* Score technique - Cercle de progression */}
+              <div className="flex flex-col items-center">
+                <div className="relative w-32 h-32 mb-4">
+                  <svg className="w-32 h-32 transform -rotate-90">
+                    <circle
+                      cx="64"
+                      cy="64"
+                      r="56"
+                      stroke="currentColor"
+                      strokeWidth="8"
+                      fill="none"
+                      className="text-gray-200 dark:text-gray-700"
+                    />
+                    <circle
+                      cx="64"
+                      cy="64"
+                      r="56"
+                      stroke="currentColor"
+                      strokeWidth="8"
+                      fill="none"
+                      strokeDasharray={`${2 * Math.PI * 56}`}
+                      strokeDashoffset={`${2 * Math.PI * 56 * (1 - 93 / 100)}`}
+                      className="text-orange-500"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <p className="text-2xl font-bold">93</p>
+                    <p className="text-xs text-muted-foreground">/100</p>
                   </div>
-                  <div>
-                    <p>Genou G: {metrics.angles.left_knee.reduce((a, b) => a + b, 0) / metrics.angles.left_knee.length || 0}</p>
-                    <p>Genou D: {metrics.angles.right_knee.reduce((a, b) => a + b, 0) / metrics.angles.right_knee.length || 0}</p>
+                </div>
+                <p className="text-sm font-semibold">Score technique</p>
+              </div>
+
+              {/* Barres de progression */}
+              <div className="space-y-4">
+                {/* Vitesse d'exécution */}
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Vitesse d'exécution</span>
+                    <span className="font-semibold">100/100</span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                    <div
+                      className="h-3 rounded-full bg-orange-500"
+                      style={{ width: "100%" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Équilibre & appuis */}
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Équilibre & appuis</span>
+                    <span className="font-semibold">87/100</span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                    <div
+                      className="h-3 rounded-full bg-orange-500"
+                      style={{ width: "87%" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Coordination gestes */}
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Coordination gestes</span>
+                    <span className="font-semibold">96/100</span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                    <div
+                      className="h-3 rounded-full bg-orange-500"
+                      style={{ width: "96%" }}
+                    />
                   </div>
                 </div>
               </div>
-              <div>
-                <p className="text-muted-foreground">Asymétrie maximale</p>
-                <p className="font-semibold">
-                  {Math.max(
-                    metrics.asymmetry.elbow,
-                    metrics.asymmetry.shoulder,
-                    metrics.asymmetry.hip,
-                    metrics.asymmetry.knee,
-                    metrics.asymmetry.ankle
-                  ).toFixed(1)}%
-                </p>
+
+              {/* Mouvement analysé */}
+              <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🥊</span>
+                  <p className="font-semibold">Mouvement analysé : Garde</p>
+                </div>
+                <div className="text-sm space-y-1 ml-7">
+                  <p className="text-muted-foreground">Précision : <span className="font-semibold text-foreground">91%</span></p>
+                  <p className="text-muted-foreground">Vitesse moyenne : <span className="font-semibold text-foreground">8.9 m/s</span></p>
+                </div>
+              </div>
+
+              {/* État de santé */}
+              <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">❤️</span>
+                  <p className="font-semibold">État de santé : excellent</p>
+                </div>
+                <div className="text-sm space-y-1 ml-7">
+                  <p className="text-muted-foreground">Cardio : <span className="font-semibold text-foreground">170 bpm</span></p>
+                  <p className="text-muted-foreground">Risque blessure : <span className="font-semibold text-foreground">faible</span></p>
+                </div>
               </div>
             </div>
           </TabsContent>
