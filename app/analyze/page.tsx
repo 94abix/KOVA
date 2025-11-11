@@ -194,24 +194,39 @@ export default function AnalyzePage() {
             <div>
               <h2 className="text-2xl font-bold mb-4">Aperçu</h2>
               <div className="relative bg-black rounded-lg overflow-hidden">
-                <video
-                  ref={videoRef}
-                  src={videoUrl}
-                  controls
-                  preload="auto"
-                  playsInline
-                  className="w-full"
-                  style={{ display: 'block' }}
-                  onLoadedMetadata={() => {
-                    if (videoRef.current) {
-                      setVideoMetadata({
-                        duration: videoRef.current.duration,
-                        width: videoRef.current.videoWidth,
-                        height: videoRef.current.videoHeight,
-                      });
-                    }
-                  }}
-                />
+                {videoUrl ? (
+                  <video
+                    ref={videoRef}
+                    src={videoUrl}
+                    controls
+                    preload="auto"
+                    playsInline
+                    muted={false}
+                    className="w-full h-auto"
+                    style={{ 
+                      display: 'block',
+                      width: '100%',
+                      height: 'auto',
+                      minHeight: '300px'
+                    }}
+                    onLoadedMetadata={() => {
+                      if (videoRef.current) {
+                        setVideoMetadata({
+                          duration: videoRef.current.duration,
+                          width: videoRef.current.videoWidth,
+                          height: videoRef.current.videoHeight,
+                        });
+                      }
+                    }}
+                    onError={(e) => {
+                      console.error("Erreur vidéo:", e);
+                    }}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-64 text-white">
+                    Chargement de la vidéo...
+                  </div>
+                )}
               </div>
             </div>
 
