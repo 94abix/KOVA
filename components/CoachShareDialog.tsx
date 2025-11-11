@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Download } from "lucide-react";
 
 interface CoachShareDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   token: string | null;
   onGenerateLink: () => Promise<void>;
+  onDownloadPDF?: () => Promise<void>;
 }
 
 export function CoachShareDialog({
@@ -17,6 +18,7 @@ export function CoachShareDialog({
   onOpenChange,
   token,
   onGenerateLink,
+  onDownloadPDF,
 }: CoachShareDialogProps) {
   const [copied, setCopied] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -90,6 +92,18 @@ export function CoachShareDialog({
               <p className="text-xs text-muted-foreground">
                 Ce lien expire dans 14 jours et peut être révoqué à tout moment.
               </p>
+              {onDownloadPDF && (
+                <div className="pt-4 border-t border-border">
+                  <Button
+                    onClick={onDownloadPDF}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Télécharger le PDF
+                  </Button>
+                </div>
+              )}
             </>
           )}
         </div>

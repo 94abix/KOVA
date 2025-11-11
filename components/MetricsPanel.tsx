@@ -307,8 +307,8 @@ export function MetricsPanel({ metrics, frames }: MetricsPanelProps) {
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <p className="text-2xl font-bold">93</p>
-                    <p className="text-xs text-muted-foreground">/100</p>
+                    <p className="text-4xl font-bold">93</p>
+                    <p className="text-sm text-muted-foreground">/100</p>
                   </div>
                 </div>
                 <p className="text-sm font-semibold">Score technique</p>
