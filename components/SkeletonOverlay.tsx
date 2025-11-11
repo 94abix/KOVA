@@ -127,11 +127,23 @@ export function SkeletonOverlay({
   }, [drawSkeleton]);
 
   return (
-    <div ref={containerRef} className="absolute inset-0 w-full h-full">
+    <div 
+      ref={containerRef} 
+      className="absolute inset-0 w-full h-full pointer-events-none"
+      style={{ 
+        zIndex: 10,
+        backgroundColor: 'transparent',
+        pointerEvents: 'none'
+      }}
+    >
       <canvas
         ref={canvasRef}
         className="pointer-events-none w-full h-full"
-        style={{ zIndex: 10 }}
+        style={{ 
+          zIndex: 10,
+          backgroundColor: 'transparent',
+          pointerEvents: 'none'
+        }}
       />
     </div>
   );

@@ -57,24 +57,39 @@ export default function AnalyzePage() {
   }, [videoUrl, step]);
 
   const handleVideoSelect = (file: File) => {
-    setVideoFile(file);
-    const url = URL.createObjectURL(file);
-    setVideoUrl(url);
-    setStep("preview");
-    setVideoMetadata(null);
-    
-    // Charger les métadonnées de la vidéo
-    const video = document.createElement("video");
-    video.preload = "metadata";
-    video.onloadedmetadata = () => {
-      setVideoMetadata({
-        duration: video.duration,
-        width: video.videoWidth,
-        height: video.videoHeight,
-      });
-      URL.revokeObjectURL(video.src);
-    };
-    video.src = url;
+    try {
+      console.log("📹 Fichier sélectionné:", file.name, file.type, file.size);
+      setVideoFile(file);
+      const url = URL.createObjectURL(file);
+      console.log("✅ Blob URL créée:", url);
+      setVideoUrl(url);
+      setStep("preview");
+      setVideoMetadata(null);
+      
+      // Charger les métadonnées de la vidéo
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.onloadedmetadata = () => {
+        console.log("✅ Métadonnées chargées:", {
+          duration: video.duration,
+          width: video.videoWidth,
+          height: video.videoHeight,
+        });
+        setVideoMetadata({
+          duration: video.duration,
+          width: video.videoWidth,
+          height: video.videoHeight,
+        });
+        URL.revokeObjectURL(video.src);
+      };
+      video.onerror = (e) => {
+        console.error("❌ Erreur lors du chargement des métadonnées:", e);
+      };
+      video.src = url;
+    } catch (error) {
+      console.error("❌ Erreur lors de la sélection de la vidéo:", error);
+      alert("Erreur lors de la sélection de la vidéo");
+    }
   };
 
   const handleRecordingComplete = (blob: Blob) => {
@@ -193,7 +208,7 @@ export default function AnalyzePage() {
             {/* Aperçu */}
             <div>
               <h2 className="text-2xl font-bold mb-4">Aperçu</h2>
-              <div className="relative bg-black rounded-lg overflow-hidden">
+              <div className="relative w-full max-w-3xl bg-black rounded-lg overflow-hidden">
                 {videoUrl ? (
                   <video
                     ref={videoRef}
@@ -202,14 +217,15 @@ export default function AnalyzePage() {
                     preload="auto"
                     playsInline
                     muted={false}
-                    className="w-full h-auto"
+                    className="w-full h-auto rounded-lg"
                     style={{ 
                       display: 'block',
                       width: '100%',
                       height: 'auto',
-                      minHeight: '300px'
+                      backgroundColor: 'black'
                     }}
                     onLoadedMetadata={() => {
+                      console.log("✅ Vidéo metadata chargée dans le player");
                       if (videoRef.current) {
                         setVideoMetadata({
                           duration: videoRef.current.duration,
@@ -218,8 +234,16 @@ export default function AnalyzePage() {
                         });
                       }
                     }}
+                    onCanPlay={() => {
+                      console.log("✅ Vidéo prête à être lue");
+                    }}
                     onError={(e) => {
-                      console.error("Erreur vidéo:", e);
+                      console.error("❌ Erreur vidéo dans le player:", e);
+                      console.error("❌ Video src:", videoUrl);
+                      console.error("❌ Video element:", videoRef.current);
+                    }}
+                    onLoadStart={() => {
+                      console.log("🔄 Début du chargement de la vidéo");
                     }}
                   />
                 ) : (
@@ -337,7 +361,7 @@ export default function AnalyzePage() {
             <div className="lg:col-span-2 space-y-6">
               <Card>
                 <CardContent className="p-6">
-                  <div className="relative bg-black rounded-lg overflow-hidden" style={{ minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div className="relative w-full max-w-3xl bg-black rounded-lg overflow-hidden">
                     {videoUrl ? (
                       <>
                         <video
@@ -346,23 +370,30 @@ export default function AnalyzePage() {
                           controls
                           preload="auto"
                           playsInline
+                          className="w-full h-auto rounded-lg"
                           style={{ 
-                            width: '100%', 
-                            maxWidth: '100%', 
+                            width: '100%',
                             height: 'auto',
-                            maxHeight: '600px',
-                            objectFit: 'contain',
-                            display: 'block'
+                            display: 'block',
+                            backgroundColor: 'black',
+                            position: 'relative',
+                            zIndex: 1
                           }}
                           onTimeUpdate={(e) => {
                             // Le SkeletonOverlay écoute le currentTime
                           }}
+                          onError={(e) => {
+                            console.error("❌ Erreur vidéo dans results:", e);
+                          }}
                         />
-                        <SkeletonOverlay
-                          video={videoRef.current}
-                          frames={frames}
-                          currentTime={videoRef.current?.currentTime || 0}
-                        />
+                        {/* Skeleton overlay uniquement si frames disponibles et ne masque pas la vidéo */}
+                        {frames.length > 0 && videoRef.current && (
+                          <SkeletonOverlay
+                            video={videoRef.current}
+                            frames={frames}
+                            currentTime={videoRef.current?.currentTime || 0}
+                          />
+                        )}
                       </>
                     ) : (
                       <div className="text-white p-8">Vidéo non disponible</div>
