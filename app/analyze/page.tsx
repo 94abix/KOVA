@@ -34,6 +34,11 @@ export default function AnalyzePage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [coachToken, setCoachToken] = useState<string | null>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [videoMetadata, setVideoMetadata] = useState<{
+    duration: number;
+    width: number;
+    height: number;
+  } | null>(null);
 
   useEffect(() => {
     return () => {
@@ -48,6 +53,20 @@ export default function AnalyzePage() {
     const url = URL.createObjectURL(file);
     setVideoUrl(url);
     setStep("preview");
+    setVideoMetadata(null);
+    
+    // Charger les métadonnées de la vidéo
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.onloadedmetadata = () => {
+      setVideoMetadata({
+        duration: video.duration,
+        width: video.videoWidth,
+        height: video.videoHeight,
+      });
+      URL.revokeObjectURL(video.src);
+    };
+    video.src = url;
   };
 
   const handleRecordingComplete = (blob: Blob) => {
@@ -161,20 +180,81 @@ export default function AnalyzePage() {
           </div>
         )}
 
-        {step === "preview" && videoUrl && (
+        {step === "preview" && videoUrl && videoFile && (
           <div className="max-w-4xl mx-auto space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold mb-4">Aperçu</h2>
-              <div className="relative bg-black rounded-lg overflow-hidden">
-                <video
-                  ref={videoRef}
-                  src={videoUrl}
-                  controls
-                  className="w-full"
-                />
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="text-2xl">📊</div>
+                <h2 className="text-2xl font-bold">Analyse de la vidéo</h2>
               </div>
             </div>
 
+            {/* Informations vidéo */}
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="bg-muted/50 rounded-lg p-4">
+                <p className="text-sm text-muted-foreground mb-1">Durée</p>
+                <p className="text-xl font-semibold">
+                  {videoMetadata
+                    ? `${videoMetadata.duration.toFixed(1)}s`
+                    : "Calcul..."}
+                </p>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-4">
+                <p className="text-sm text-muted-foreground mb-1">Taille du fichier</p>
+                <p className="text-xl font-semibold">
+                  {(videoFile.size / (1024 * 1024)).toFixed(2)} MB
+                </p>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-4">
+                <p className="text-sm text-muted-foreground mb-1">Qualité estimée</p>
+                <p className="text-xl font-semibold">
+                  {videoMetadata
+                    ? `${videoMetadata.width}x${videoMetadata.height}`
+                    : "Calcul..."}
+                </p>
+              </div>
+            </div>
+
+            {/* Recommandations */}
+            <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-6 mb-6">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-green-600 dark:text-green-400">✅</span>
+                <h3 className="font-semibold">Recommandations pour une meilleure analyse</h3>
+              </div>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 dark:text-green-400">✓</span>
+                  <span>Assure-toi que le combattant est bien visible et centré dans la vidéo</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 dark:text-green-400">✓</span>
+                  <span>La vidéo doit être filmée de profil ou de 3/4 pour une meilleure détection</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 dark:text-green-400">✓</span>
+                  <span>Éclairage uniforme recommandé pour détecter toutes les articulations</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 dark:text-green-400">✓</span>
+                  <span>Durée idéale : entre 5 et 15 secondes pour une analyse optimale</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Astuce */}
+            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-4 mb-6">
+              <div className="flex items-start gap-2">
+                <span className="text-xl">💡</span>
+                <div>
+                  <p className="font-semibold mb-1">Astuce :</p>
+                  <p className="text-sm text-muted-foreground">
+                    L&apos;analyse va détecter automatiquement les mouvements et calculer les métriques biomécaniques (angles, vitesses, asymétries). Plus la vidéo est de qualité, plus l&apos;analyse sera précise.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Boutons d'action */}
             <div className="flex gap-4">
               <Button
                 variant="outline"
@@ -184,13 +264,16 @@ export default function AnalyzePage() {
                   setVideoUrl(null);
                   setVideoFile(null);
                 }}
+                className="flex-1"
               >
                 Retour
               </Button>
-              <PoseAnalyzer
-                video={videoRef.current}
-                onAnalysisComplete={handleAnalysisComplete}
-              />
+              <div className="flex-1">
+                <PoseAnalyzer
+                  video={videoRef.current}
+                  onAnalysisComplete={handleAnalysisComplete}
+                />
+              </div>
             </div>
           </div>
         )}
