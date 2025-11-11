@@ -189,88 +189,141 @@ export default function AnalyzePage() {
         )}
 
         {step === "preview" && videoUrl && videoFile && (
-          <div className="max-w-4xl mx-auto space-y-6">
+          <div className="max-w-6xl mx-auto space-y-6">
+            {/* Aperçu avec analyse en temps réel */}
             <div>
-              <h2 className="text-2xl font-bold mb-4">Aperçu</h2>
-              <div className="relative bg-black rounded-lg overflow-hidden max-w-2xl" style={{ minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {videoUrl ? (
-                  <video
-                    ref={videoRef}
-                    src={videoUrl}
-                    controls
-                    preload="auto"
-                    playsInline
-                    style={{ 
-                      width: '100%', 
-                      maxWidth: '100%', 
-                      height: 'auto',
-                      maxHeight: '600px',
-                      objectFit: 'contain',
-                      display: 'block'
-                    }}
-                    onLoadedMetadata={() => {
-                      if (videoRef.current) {
-                        setVideoMetadata({
-                          duration: videoRef.current.duration,
-                          width: videoRef.current.videoWidth,
-                          height: videoRef.current.videoHeight,
-                        });
-                      }
-                    }}
-                    onCanPlay={() => {
-                      if (videoRef.current) {
-                        videoRef.current.play().catch(() => {
-                          // Ignore autoplay errors
-                        });
-                      }
-                    }}
-                    onError={(e) => {
-                      console.error("Erreur de chargement vidéo:", e);
-                    }}
+              <h2 className="text-2xl font-bold mb-4 text-white">Aperçu avec analyse en temps réel</h2>
+              <div className="relative bg-black rounded-lg overflow-hidden">
+                <video
+                  ref={videoRef}
+                  src={videoUrl}
+                  controls
+                  preload="auto"
+                  playsInline
+                  className="w-full"
+                  style={{ display: 'block' }}
+                  onLoadedMetadata={() => {
+                    if (videoRef.current) {
+                      setVideoMetadata({
+                        duration: videoRef.current.duration,
+                        width: videoRef.current.videoWidth,
+                        height: videoRef.current.videoHeight,
+                      });
+                    }
+                  }}
+                  onTimeUpdate={() => {
+                    // Pour le skeleton overlay en temps réel
+                  }}
+                />
+                {/* Skeleton overlay en temps réel sur la vidéo */}
+                {videoRef.current && (
+                  <SkeletonOverlay
+                    video={videoRef.current}
+                    frames={[]}
+                    currentTime={videoRef.current.currentTime || 0}
                   />
-                ) : (
-                  <div className="text-white p-8">Chargement de la vidéo...</div>
                 )}
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setStep("upload");
-                  if (videoUrl) URL.revokeObjectURL(videoUrl);
-                  setVideoUrl(null);
-                  setVideoFile(null);
-                  setVideoMetadata(null);
-                }}
-              >
-                Retour
-              </Button>
-              <Button
-                onClick={async () => {
-                  if (!videoRef.current) return;
-                  
-                  // Simuler une analyse avec données de démonstration
-                  const duration = videoMetadata?.duration || videoRef.current.duration || 10;
-                  const fps = 30;
-                  
-                  // Générer des frames de démonstration
-                  const demoFrames = generateDemoFrames(duration, fps);
-                  const demoMetrics = generateDemoMetrics(demoFrames);
-                  const demoAlerts = generateHealthAlerts(
-                    demoFrames,
-                    demoMetrics.asymmetry,
-                    demoMetrics.cadence.trend
-                  );
-                  
-                  // Appeler le callback avec les données de démonstration
-                  handleAnalysisComplete(demoFrames, demoMetrics, demoAlerts);
-                }}
-                className="bg-accent hover:bg-accent-light text-white"
-              >
-                Lancer l&apos;analyse
-              </Button>
+            {/* Analyse de la vidéo */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl">📊</div>
+                  <h2 className="text-2xl font-bold">Analyse de la vidéo</h2>
+                </div>
+                <Button
+                  onClick={async () => {
+                    if (!videoRef.current) return;
+                    
+                    // Simuler une analyse avec données de démonstration
+                    const duration = videoMetadata?.duration || videoRef.current.duration || 10;
+                    const fps = 30;
+                    
+                    // Générer des frames de démonstration
+                    const demoFrames = generateDemoFrames(duration, fps);
+                    const demoMetrics = generateDemoMetrics(demoFrames);
+                    const demoAlerts = generateHealthAlerts(
+                      demoFrames,
+                      demoMetrics.asymmetry,
+                      demoMetrics.cadence.trend
+                    );
+                    
+                    // Appeler le callback avec les données de démonstration
+                    handleAnalysisComplete(demoFrames, demoMetrics, demoAlerts);
+                  }}
+                  className="bg-black hover:bg-gray-800 text-white"
+                >
+                  Prêt pour l&apos;analyse
+                </Button>
+              </div>
+
+              {/* Informations vidéo */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <p className="text-sm text-muted-foreground mb-1">Durée</p>
+                  <p className="text-xl font-semibold">
+                    {videoMetadata
+                      ? `${videoMetadata.duration.toFixed(1)}s`
+                      : "Calcul..."}
+                  </p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <p className="text-sm text-muted-foreground mb-1">Taille du fichier</p>
+                  <p className="text-xl font-semibold">
+                    {(videoFile.size / (1024 * 1024)).toFixed(2)} MB
+                  </p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <p className="text-sm text-muted-foreground mb-1">Qualité estimée</p>
+                  <p className="text-xl font-semibold">
+                    {videoMetadata
+                      ? `${videoMetadata.width}x${videoMetadata.height}` : "Calcul..."}
+                    {videoMetadata && videoMetadata.width >= 1920 && (
+                      <span className="ml-2 text-green-500 text-sm">HD</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {/* Recommandations */}
+              <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-green-600 dark:text-green-400">✅</span>
+                  <h3 className="font-semibold">Recommandations pour une meilleure analyse</h3>
+                </div>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 dark:text-green-400">✓</span>
+                    <span>Assure-toi que le combattant est bien visible et centré dans la vidéo</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 dark:text-green-400">✓</span>
+                    <span>La vidéo doit être filmée de profil ou de 3/4 pour une meilleure détection</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 dark:text-green-400">✓</span>
+                    <span>Éclairage uniforme recommandé pour détecter toutes les articulations</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Bouton Retour */}
+              <div className="flex justify-start">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setStep("upload");
+                    if (videoUrl) URL.revokeObjectURL(videoUrl);
+                    setVideoUrl(null);
+                    setVideoFile(null);
+                    setVideoMetadata(null);
+                  }}
+                >
+                  Retour
+                </Button>
+              </div>
             </div>
           </div>
         )}
