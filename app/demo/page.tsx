@@ -31,22 +31,67 @@ export default function DemoPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Charger la vidéo de démo si elle existe
+  // Charger la vidéo de démo si elle existe (même logique que MVP2.tsx)
   useEffect(() => {
-    // Vérifier si une vidéo demo existe dans public
     const checkVideo = async () => {
       try {
-        const videoPath = "/demo-video.mp4";
-        // Test si le fichier existe
-        const response = await fetch(videoPath, { method: "HEAD" });
-        if (response.ok) {
-          setVideoUrl(videoPath);
+        // Priorité : Demo kova 2.mp4 (même que localhost)
+        const priorityVideo = "/Demo kova 2.mp4";
+        try {
+          const response = await fetch(encodeURI(priorityVideo), { method: "HEAD" });
+          if (response.ok) {
+            setVideoUrl(priorityVideo);
+            console.log("✅ Vidéo chargée:", priorityVideo);
+            return;
+          }
+        } catch (e) {
+          console.log("⚠️ Vidéo prioritaire non trouvée, recherche alternative...");
         }
+        
+        // Fallback : essaie de récupérer la liste des vidéos via l'API
+        try {
+          const apiResponse = await fetch("/api/videos");
+          if (apiResponse.ok) {
+            const data = await apiResponse.json();
+            if (data.videos && data.videos.length > 0) {
+              // Prend la première vidéo trouvée
+              const videoName = data.videos[0];
+              const videoPath = `/${videoName}`;
+              setVideoUrl(videoPath);
+              console.log("✅ Vidéo chargée depuis API:", videoPath);
+              return;
+            }
+          }
+        } catch (apiError) {
+          console.log("API non disponible, recherche directe...");
+        }
+        
+        // Fallback : essaie des noms de vidéos courants
+        const videoPaths = [
+          "/demo-video.mp4",
+          "/video.mp4",
+          "/demo.mp4",
+        ];
+        
+        for (const videoPath of videoPaths) {
+          try {
+            const response = await fetch(encodeURI(videoPath), { method: "HEAD" });
+            if (response.ok) {
+              setVideoUrl(videoPath);
+              console.log("✅ Vidéo chargée:", videoPath);
+              return;
+            }
+          } catch (e) {
+            continue;
+          }
+        }
+        
+        console.log("⚠️ Aucune vidéo trouvée");
       } catch (e) {
-        // Pas de vidéo personnelle, on utilise les données synthétiques
-        console.log("Vidéo demo non trouvée, utilisation des données synthétiques");
+        console.log("⚠️ Erreur lors de la vérification de la vidéo");
       }
     };
+    
     checkVideo();
   }, []);
 
