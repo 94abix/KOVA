@@ -190,9 +190,9 @@ export default function AnalyzePage() {
 
         {step === "preview" && videoUrl && videoFile && (
           <div className="max-w-6xl mx-auto space-y-6">
-            {/* Aperçu avec analyse en temps réel */}
+            {/* Aperçu */}
             <div>
-              <h2 className="text-2xl font-bold mb-4 text-white">Aperçu avec analyse en temps réel</h2>
+              <h2 className="text-2xl font-bold mb-4">Aperçu</h2>
               <div className="relative bg-black rounded-lg overflow-hidden">
                 <video
                   ref={videoRef}
@@ -211,23 +211,7 @@ export default function AnalyzePage() {
                       });
                     }
                   }}
-                  onTimeUpdate={() => {
-                    // Pour le skeleton overlay en temps réel
-                  }}
                 />
-                {/* Skeleton overlay en temps réel sur la vidéo */}
-                {videoRef.current && videoMetadata && (() => {
-                  // Générer des frames de démonstration pour le skeleton overlay
-                  const duration = videoMetadata.duration || 10;
-                  const demoFrames = generateDemoFrames(duration, 30);
-                  return (
-                    <SkeletonOverlay
-                      video={videoRef.current}
-                      frames={demoFrames}
-                      currentTime={videoRef.current.currentTime || 0}
-                    />
-                  );
-                })()}
               </div>
             </div>
 
