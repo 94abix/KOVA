@@ -52,7 +52,12 @@ export default function AnalyzePage() {
   // Forcer le chargement de la vidéo quand elle est disponible
   useEffect(() => {
     if (videoRef.current && videoUrl && step === "preview") {
-      videoRef.current.load();
+      try {
+        videoRef.current.load();
+        console.log("✅ Vidéo chargée dans le player");
+      } catch (error) {
+        console.error("❌ Erreur lors du chargement de la vidéo:", error);
+      }
     }
   }, [videoUrl, step]);
 
@@ -222,7 +227,9 @@ export default function AnalyzePage() {
                       display: 'block',
                       width: '100%',
                       height: 'auto',
-                      backgroundColor: 'black'
+                      backgroundColor: 'transparent',
+                      position: 'relative',
+                      zIndex: 1
                     }}
                     onLoadedMetadata={() => {
                       console.log("✅ Vidéo metadata chargée dans le player");
@@ -232,10 +239,15 @@ export default function AnalyzePage() {
                           width: videoRef.current.videoWidth,
                           height: videoRef.current.videoHeight,
                         });
+                        // Forcer l'affichage
+                        videoRef.current.style.display = 'block';
                       }
                     }}
                     onCanPlay={() => {
                       console.log("✅ Vidéo prête à être lue");
+                      if (videoRef.current) {
+                        videoRef.current.style.display = 'block';
+                      }
                     }}
                     onError={(e) => {
                       console.error("❌ Erreur vidéo dans le player:", e);
