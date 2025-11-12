@@ -40,6 +40,7 @@ export default function AnalyzePage() {
     width: number;
     height: number;
   } | null>(null);
+  const [videoError, setVideoError] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -65,35 +66,55 @@ export default function AnalyzePage() {
     try {
       console.log("📹 Fichier sélectionné:", file.name, file.type, file.size);
       setVideoFile(file);
-      const url = URL.createObjectURL(file);
-      console.log("✅ Blob URL créée:", url);
-      setVideoUrl(url);
-      setStep("preview");
+      setVideoError(null);
       setVideoMetadata(null);
       
-      // Charger les métadonnées de la vidéo
-      const video = document.createElement("video");
-      video.preload = "metadata";
-      video.onloadedmetadata = () => {
-        console.log("✅ Métadonnées chargées:", {
-          duration: video.duration,
-          width: video.videoWidth,
-          height: video.videoHeight,
-        });
-        setVideoMetadata({
-          duration: video.duration,
-          width: video.videoWidth,
-          height: video.videoHeight,
-        });
-        URL.revokeObjectURL(video.src);
-      };
-      video.onerror = (e) => {
-        console.error("❌ Erreur lors du chargement des métadonnées:", e);
-      };
-      video.src = url;
+      // Essayer d'abord avec URL.createObjectURL
+      try {
+        const url = URL.createObjectURL(file);
+        console.log("✅ Blob URL créée:", url);
+        setVideoUrl(url);
+        setStep("preview");
+        
+        // Charger les métadonnées de la vidéo
+        const video = document.createElement("video");
+        video.preload = "metadata";
+        video.onloadedmetadata = () => {
+          console.log("✅ Métadonnées chargées:", {
+            duration: video.duration,
+            width: video.videoWidth,
+            height: video.videoHeight,
+          });
+          setVideoMetadata({
+            duration: video.duration,
+            width: video.videoWidth,
+            height: video.videoHeight,
+          });
+          URL.revokeObjectURL(video.src);
+        };
+        video.onerror = (e) => {
+          console.error("❌ Erreur lors du chargement des métadonnées:", e);
+        };
+        video.src = url;
+      } catch (createObjectURLError) {
+        console.error("❌ Erreur createObjectURL :", createObjectURLError);
+        // Fallback avec FileReader
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = reader.result as string;
+          console.log("✅ DataURL créée via FileReader");
+          setVideoUrl(dataUrl);
+          setStep("preview");
+        };
+        reader.onerror = () => {
+          console.error("❌ Erreur FileReader");
+          setVideoError("Impossible de lire cette vidéo.");
+        };
+        reader.readAsDataURL(file);
+      }
     } catch (error) {
       console.error("❌ Erreur lors de la sélection de la vidéo:", error);
-      alert("Erreur lors de la sélection de la vidéo");
+      setVideoError("Erreur lors de la sélection de la vidéo");
     }
   };
 
@@ -213,24 +234,20 @@ export default function AnalyzePage() {
             {/* Aperçu */}
             <div>
               <h2 className="text-2xl font-bold mb-4">Aperçu</h2>
+              {videoError && (
+                <div className="mb-4 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg">
+                  <p className="text-red-600 dark:text-red-400">{videoError}</p>
+                </div>
+              )}
               <div className="relative w-full max-w-3xl bg-black rounded-lg overflow-hidden">
                 {videoUrl ? (
                   <video
                     ref={videoRef}
                     src={videoUrl}
                     controls
-                    preload="auto"
                     playsInline
-                    muted={false}
-                    className="w-full h-auto rounded-lg"
-                    style={{ 
-                      display: 'block',
-                      width: '100%',
-                      height: 'auto',
-                      backgroundColor: 'transparent',
-                      position: 'relative',
-                      zIndex: 1
-                    }}
+                    preload="metadata"
+                    className="w-full h-auto bg-black"
                     onLoadedMetadata={() => {
                       console.log("✅ Vidéo metadata chargée dans le player");
                       if (videoRef.current) {
@@ -239,23 +256,26 @@ export default function AnalyzePage() {
                           width: videoRef.current.videoWidth,
                           height: videoRef.current.videoHeight,
                         });
-                        // Forcer l'affichage
-                        videoRef.current.style.display = 'block';
                       }
                     }}
                     onCanPlay={() => {
                       console.log("✅ Vidéo prête à être lue");
-                      if (videoRef.current) {
-                        videoRef.current.style.display = 'block';
-                      }
+                      setVideoError(null);
                     }}
                     onError={(e) => {
-                      console.error("❌ Erreur vidéo dans le player:", e);
-                      console.error("❌ Video src:", videoUrl);
-                      console.error("❌ Video element:", videoRef.current);
-                    }}
-                    onLoadStart={() => {
-                      console.log("🔄 Début du chargement de la vidéo");
+                      const error = e.currentTarget.error;
+                      console.error("❌ Erreur de lecture vidéo :", error);
+                      if (error) {
+                        let errorMessage = "Format vidéo non pris en charge";
+                        if (error.code === error.MEDIA_ERR_SRC_NOT_SUPPORTED) {
+                          errorMessage = "Format vidéo non pris en charge (essayez MP4 H.264)";
+                        } else if (error.code === error.MEDIA_ERR_DECODE) {
+                          errorMessage = "Erreur de décodage vidéo";
+                        } else if (error.code === error.MEDIA_ERR_NETWORK) {
+                          errorMessage = "Erreur réseau lors du chargement";
+                        }
+                        setVideoError(errorMessage);
+                      }
                     }}
                   />
                 ) : (
