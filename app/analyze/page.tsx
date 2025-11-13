@@ -400,22 +400,31 @@ export default function AnalyzePage() {
                           ref={videoRef}
                           src={videoUrl}
                           controls
-                          preload="auto"
                           playsInline
-                          className="w-full h-auto rounded-lg"
-                          style={{ 
-                            width: '100%',
-                            height: 'auto',
-                            display: 'block',
-                            backgroundColor: 'black',
-                            position: 'relative',
-                            zIndex: 1
+                          preload="metadata"
+                          className="w-full h-auto bg-black"
+                          onLoadedMetadata={() => {
+                            console.log("✅ Vidéo metadata chargée dans results");
+                            if (videoRef.current) {
+                              videoRef.current.style.display = 'block';
+                            }
+                          }}
+                          onCanPlay={() => {
+                            console.log("✅ Vidéo prête à être lue dans results");
+                            if (videoRef.current) {
+                              videoRef.current.style.display = 'block';
+                            }
                           }}
                           onTimeUpdate={(e) => {
                             // Le SkeletonOverlay écoute le currentTime
                           }}
                           onError={(e) => {
-                            console.error("❌ Erreur vidéo dans results:", e);
+                            const error = e.currentTarget.error;
+                            console.error("❌ Erreur vidéo dans results:", error);
+                            if (error) {
+                              console.error("Code d'erreur:", error.code);
+                              console.error("Message:", error.message);
+                            }
                           }}
                         />
                         {/* Skeleton overlay uniquement si frames disponibles et ne masque pas la vidéo */}
@@ -428,7 +437,9 @@ export default function AnalyzePage() {
                         )}
                       </>
                     ) : (
-                      <div className="text-white p-8">Vidéo non disponible</div>
+                      <div className="flex items-center justify-center h-64 text-white">
+                        Vidéo non disponible
+                      </div>
                     )}
                   </div>
                 </CardContent>
