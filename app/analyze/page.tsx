@@ -415,9 +415,6 @@ export default function AnalyzePage() {
                               videoRef.current.style.display = 'block';
                             }
                           }}
-                          onTimeUpdate={(e) => {
-                            // Le SkeletonOverlay écoute le currentTime
-                          }}
                           onError={(e) => {
                             const error = e.currentTarget.error;
                             console.error("❌ Erreur vidéo dans results:", error);
@@ -427,14 +424,6 @@ export default function AnalyzePage() {
                             }
                           }}
                         />
-                        {/* Skeleton overlay uniquement si frames disponibles et ne masque pas la vidéo */}
-                        {frames.length > 0 && videoRef.current && (
-                          <SkeletonOverlay
-                            video={videoRef.current}
-                            frames={frames}
-                            currentTime={videoRef.current?.currentTime || 0}
-                          />
-                        )}
                       </>
                     ) : (
                       <div className="flex items-center justify-center h-64 text-white">
