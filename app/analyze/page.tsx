@@ -14,6 +14,25 @@ import { generateDemoFrames, generateDemoMetrics } from "@/lib/demo";
 import { generateHealthAlerts } from "@/lib/pose/alerts";
 import type { PoseFrame, Metrics } from "@/lib/pose/types";
 
+// Style CSS pour garantir la transparence des overlays
+const overlayStyles = `
+  /* Forcer la transparence de tout overlay Dialog qui pourrait masquer la vidéo */
+  [data-radix-dialog-overlay] {
+    background: transparent !important;
+  }
+  
+  /* S'assurer que le canvas est transparent */
+  #pose-canvas {
+    background: transparent !important;
+    pointer-events: none !important;
+  }
+  
+  /* Aucun overlay plein écran opaque ne doit masquer la vidéo */
+  .video-container > *:not(video) {
+    pointer-events: none !important;
+  }
+`;
+
 type Step = "upload" | "preview" | "analyze" | "results";
 
 export default function AnalyzePage() {
@@ -184,6 +203,23 @@ export default function AnalyzePage() {
       alert("Erreur lors de la génération du lien");
     }
   };
+
+  // Injecter les styles CSS pour garantir la transparence
+  useEffect(() => {
+    const styleId = 'video-overlay-styles';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = overlayStyles;
+      document.head.appendChild(style);
+    }
+    return () => {
+      const style = document.getElementById(styleId);
+      if (style) {
+        style.remove();
+      }
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -393,53 +429,77 @@ export default function AnalyzePage() {
             <div className="lg:col-span-2 space-y-6">
               <Card>
                 <CardContent className="p-6">
-                  <div className="relative w-full max-w-3xl bg-black rounded-lg overflow-hidden">
+                  <div className="relative w-full max-w-3xl bg-black rounded-lg overflow-hidden video-container">
                     {videoUrl ? (
-                      <video
-                        ref={videoRef}
-                        src={videoUrl}
-                        controls
-                        playsInline
-                        preload="auto"
-                        className="w-full h-auto bg-black"
-                        style={{
-                          display: 'block',
-                          width: '100%',
-                          height: 'auto',
-                          minHeight: '300px',
-                          backgroundColor: 'black'
-                        }}
-                        onLoadedMetadata={() => {
-                          console.log("✅ Vidéo metadata chargée dans results");
-                          console.log("Video URL:", videoUrl);
-                          console.log("Video src:", videoRef.current?.src);
-                          if (videoRef.current) {
-                            videoRef.current.style.display = 'block';
-                            // Forcer la lecture si nécessaire
-                            videoRef.current.load();
-                          }
-                        }}
-                        onCanPlay={() => {
-                          console.log("✅ Vidéo prête à être lue dans results");
-                          if (videoRef.current) {
-                            videoRef.current.style.display = 'block';
-                            console.log("Video dimensions:", videoRef.current.videoWidth, "x", videoRef.current.videoHeight);
-                          }
-                        }}
-                        onLoadStart={() => {
-                          console.log("🔄 Début du chargement de la vidéo dans results");
-                        }}
-                        onError={(e) => {
-                          const error = e.currentTarget.error;
-                          console.error("❌ Erreur vidéo dans results:", error);
-                          console.error("Video URL:", videoUrl);
-                          console.error("Video src:", videoRef.current?.src);
-                          if (error) {
-                            console.error("Code d'erreur:", error.code);
-                            console.error("Message:", error.message);
-                          }
-                        }}
-                      />
+                      <div className="relative">
+                        {/* Vidéo - z-0 : toujours visible en arrière-plan */}
+                        <video
+                          ref={videoRef}
+                          src={videoUrl}
+                          controls
+                          playsInline
+                          preload="auto"
+                          className="relative z-0 w-full h-auto bg-black"
+                          style={{
+                            display: 'block',
+                            width: '100%',
+                            height: 'auto',
+                            minHeight: '300px',
+                            backgroundColor: 'black',
+                            position: 'relative',
+                            zIndex: 0
+                          }}
+                          onLoadedMetadata={() => {
+                            console.log("✅ Vidéo metadata chargée dans results");
+                            console.log("Video URL:", videoUrl);
+                            console.log("Video src:", videoRef.current?.src);
+                            if (videoRef.current) {
+                              videoRef.current.style.display = 'block';
+                              // Forcer la lecture si nécessaire
+                              videoRef.current.load();
+                            }
+                          }}
+                          onCanPlay={() => {
+                            console.log("✅ Vidéo prête à être lue dans results");
+                            if (videoRef.current) {
+                              videoRef.current.style.display = 'block';
+                              console.log("Video dimensions:", videoRef.current.videoWidth, "x", videoRef.current.videoHeight);
+                            }
+                          }}
+                          onLoadStart={() => {
+                            console.log("🔄 Début du chargement de la vidéo dans results");
+                          }}
+                          onError={(e) => {
+                            const error = e.currentTarget.error;
+                            console.error("❌ Erreur vidéo dans results:", error);
+                            console.error("Video URL:", videoUrl);
+                            console.error("Video src:", videoRef.current?.src);
+                            if (error) {
+                              console.error("Code d'erreur:", error.code);
+                              console.error("Message:", error.message);
+                            }
+                          }}
+                        />
+                        {/* Canvas squelette - z-10 : transparent, pointer-events-none */}
+                        {frames.length > 0 && videoRef.current && (
+                          <canvas
+                            id="pose-canvas"
+                            className="pointer-events-none absolute inset-0 z-10"
+                            style={{
+                              background: "transparent",
+                              pointerEvents: "none",
+                              zIndex: 10,
+                              position: "absolute",
+                              top: 0,
+                              left: 0,
+                              width: "100%",
+                              height: "100%"
+                            }}
+                          />
+                        )}
+                        {/* Feedback visuel - z-20 : petit badge non plein écran, pointer-events-none */}
+                        {/* Aucun overlay plein écran opaque ici */}
+                      </div>
                     ) : (
                       <div className="flex items-center justify-center h-64 text-white">
                         <p>Vidéo non disponible</p>
