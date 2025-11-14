@@ -52,10 +52,10 @@ export default function AnalyzePage() {
 
   // Forcer le chargement de la vidéo quand elle est disponible
   useEffect(() => {
-    if (videoRef.current && videoUrl && step === "preview") {
+    if (videoRef.current && videoUrl && (step === "preview" || step === "results")) {
       try {
         videoRef.current.load();
-        console.log("✅ Vidéo chargée dans le player");
+        console.log(`✅ Vidéo chargée dans le player (step: ${step})`);
       } catch (error) {
         console.error("❌ Erreur lors du chargement de la vidéo:", error);
       }
@@ -395,39 +395,55 @@ export default function AnalyzePage() {
                 <CardContent className="p-6">
                   <div className="relative w-full max-w-3xl bg-black rounded-lg overflow-hidden">
                     {videoUrl ? (
-                      <>
-                        <video
-                          ref={videoRef}
-                          src={videoUrl}
-                          controls
-                          playsInline
-                          preload="metadata"
-                          className="w-full h-auto bg-black"
-                          onLoadedMetadata={() => {
-                            console.log("✅ Vidéo metadata chargée dans results");
-                            if (videoRef.current) {
-                              videoRef.current.style.display = 'block';
-                            }
-                          }}
-                          onCanPlay={() => {
-                            console.log("✅ Vidéo prête à être lue dans results");
-                            if (videoRef.current) {
-                              videoRef.current.style.display = 'block';
-                            }
-                          }}
-                          onError={(e) => {
-                            const error = e.currentTarget.error;
-                            console.error("❌ Erreur vidéo dans results:", error);
-                            if (error) {
-                              console.error("Code d'erreur:", error.code);
-                              console.error("Message:", error.message);
-                            }
-                          }}
-                        />
-                      </>
+                      <video
+                        ref={videoRef}
+                        src={videoUrl}
+                        controls
+                        playsInline
+                        preload="auto"
+                        className="w-full h-auto bg-black"
+                        style={{
+                          display: 'block',
+                          width: '100%',
+                          height: 'auto',
+                          minHeight: '300px',
+                          backgroundColor: 'black'
+                        }}
+                        onLoadedMetadata={() => {
+                          console.log("✅ Vidéo metadata chargée dans results");
+                          console.log("Video URL:", videoUrl);
+                          console.log("Video src:", videoRef.current?.src);
+                          if (videoRef.current) {
+                            videoRef.current.style.display = 'block';
+                            // Forcer la lecture si nécessaire
+                            videoRef.current.load();
+                          }
+                        }}
+                        onCanPlay={() => {
+                          console.log("✅ Vidéo prête à être lue dans results");
+                          if (videoRef.current) {
+                            videoRef.current.style.display = 'block';
+                            console.log("Video dimensions:", videoRef.current.videoWidth, "x", videoRef.current.videoHeight);
+                          }
+                        }}
+                        onLoadStart={() => {
+                          console.log("🔄 Début du chargement de la vidéo dans results");
+                        }}
+                        onError={(e) => {
+                          const error = e.currentTarget.error;
+                          console.error("❌ Erreur vidéo dans results:", error);
+                          console.error("Video URL:", videoUrl);
+                          console.error("Video src:", videoRef.current?.src);
+                          if (error) {
+                            console.error("Code d'erreur:", error.code);
+                            console.error("Message:", error.message);
+                          }
+                        }}
+                      />
                     ) : (
                       <div className="flex items-center justify-center h-64 text-white">
-                        Vidéo non disponible
+                        <p>Vidéo non disponible</p>
+                        <p className="text-sm text-gray-400 mt-2">videoUrl: {videoUrl ? "présent" : "null"}</p>
                       </div>
                     )}
                   </div>
